@@ -1,6 +1,6 @@
 <?php
 
-define('DS', DIRECTORY_SEPARATOR);
+if( !defined('DS') ) define('DS', DIRECTORY_SEPARATOR);
 define('SELF', pathinfo(__FILE__, PATHINFO_BASENAME));
 define('PROTOCOL', isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1) || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ? 'https' : 'http');
 define('DOMAIN', isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']);
@@ -33,6 +33,10 @@ function define_dir( $define = null, $new_path = null , $default_path = null ) {
 	}
 }
 
+function define_url( $define = null, $path = null) {
+	if ( !defined($define) ) define($define, url($path));
+}
+
 // to fix trailing slash
 function trailingslash( $url_path ) {
 	if ( pathinfo($url_path, PATHINFO_EXTENSION) ) return fixslash( $url_path );
@@ -44,8 +48,8 @@ function fixslash( $url_path ) {
 	return rtrim(preg_replace('/([^:])(\/{2,})/', '$1/', $url_path), '/\\' );
 }
 
-function url( $url = null ) {
 // convert system PATH to URL
+function url( $url = null ) {
 	if (is_absolute_path($url)) {
 		return trailingslash(PROTOCOL . '://' . DOMAIN . '/' . strip_root($url));
 	} else {
@@ -53,6 +57,24 @@ function url( $url = null ) {
 	}
 }
 
+// convert URL to system PATH
+function path( $url = null ) {
+	if (!is_absolute_path($url)){
+		return trailingslash($_SERVER['DOCUMENT_ROOT'] . strip_url($url));
+	} else {
+		return trailingslash($_SERVER['DOCUMENT_ROOT'] . $url);
+	}
+}
+
+// remove http://localhost/ from url
+function strip_url( $url = null ) {
+	if (!is_absolute_path($url)) {
+		$baseUrl = fixslash(PROTOCOL . '://' . DOMAIN);
+		return str_replace($baseUrl, '', $url);
+	}
+}
+
+// remove A:/xampp/htdocs/ from path
 function strip_root( $path = null ) {
 	$path = fixslash($path);
 	if (is_absolute_path($path)) {
@@ -61,6 +83,7 @@ function strip_root( $path = null ) {
 	}
 }
 
+// check absolute path
 function is_absolute_path($path = null) {
 	$path = fixslash($path);
 	if ($path[0] === DIRECTORY_SEPARATOR || preg_match('~\A[A-Z]:(?![^/\\\\])~i',$path))
