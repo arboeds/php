@@ -62,11 +62,11 @@ function path( $url = null ) {
 	if (!is_absolute_path($url)){
 		return trailingslash($_SERVER['DOCUMENT_ROOT'] . strip_url($url));
 	} else {
-		return trailingslash($_SERVER['DOCUMENT_ROOT'] . $url);
+		return $url;
 	}
 }
 
-// remove http://localhost/ from url
+// remove http://example.com/ from url
 function strip_url( $url = null ) {
 	if (!is_absolute_path($url)) {
 		$baseUrl = fixslash(PROTOCOL . '://' . DOMAIN);
@@ -74,7 +74,7 @@ function strip_url( $url = null ) {
 	}
 }
 
-// remove A:/xampp/htdocs/ from path
+// remove absolute dirname from path
 function strip_root( $path = null ) {
 	$path = fixslash($path);
 	if (is_absolute_path($path)) {
